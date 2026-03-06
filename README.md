@@ -1,16 +1,17 @@
-# Developer Personality Analyzer
+# Find your developer personality
 
 > Generate a fun, data-driven personality profile from commit history, language usage, and coding habits.
 > Just drop in your Github profile or repo.
 
-![Demo](https://img.shields.io/badge/stack-Node%20%7C%20React%20%7C%20Chart.js-7c3aed?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square)
+![Demo](https://img.shields.io/badge/stack-Node%20%7C%20DeepseekV3%20%7C%20React%20%7C%20Chart.js-7c3aed?style=flat-square)
+
+<!-- ![License](https://img.shields.io/badge/license-MIT-22c55e?style=flat-square) -->
 
 ---
 
 ## ✨ What It Does
 
-Enter any GitHub **username** (e.g. `torvalds`) or **owner/repo** (e.g. `facebook/react`\*\*\*\*) and get back:
+Enter any GitHub **username** (e.g. `torvalds`) or **owner/repo** (e.g. `facebook/react`) and get back:
 
 ## Features
 
@@ -40,7 +41,7 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer              | Technology                                                              |
 | ------------------ | ----------------------------------------------------------------------- |
@@ -56,7 +57,7 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 
 ---
 
-## 🧠 Personality Types
+## Personality Types
 
 | Type                       | Trigger Conditions                                   |
 | -------------------------- | ---------------------------------------------------- |
@@ -75,7 +76,7 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 
 ---
 
-## ⚔️ D&D Alignments
+## D&D Alignments
 
 | Alignment          | Tagline                                     |
 | ------------------ | ------------------------------------------- |
@@ -91,6 +92,11 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 
 ---
 
+## To-do:
+
+- [ ] Deploy frontend on vercel
+- [ ] Deploy backend on fly(?)
+
 ---
 
-_Built for fun. Personality results are algorithmic entertainment, not professional assessments._
+> Built for fun. Personality results are algorithmic entertainment, not professional assessments.
