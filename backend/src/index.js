@@ -12,7 +12,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN
       ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
-      : "http://localhost:5173",
+      : "https://what-is-my-developer-personality.vercel.app",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),

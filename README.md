@@ -54,6 +54,7 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 | Animations         | Framer Motion                                                           |
 | Icons              | Lucide React                                                            |
 | Notifications      | react-hot-toast                                                         |
+| Deployment         | Vercel (Frontend), Fly.io (Backend)                                     |
 
 ---
 
@@ -89,13 +90,6 @@ Generates an optional narrative personality report using OpenRouter. Falls back 
 | 🦸 Chaotic Good    | The Creative Genius Who Ships               |
 | 🎲 Chaotic Neutral | The Hacker — Move Fast, Break Things        |
 | 💀 Chaotic Evil    | The Legendary 3am Cowboy Deployer           |
-
----
-
-## To-do:
-
-- [ ] Deploy frontend on vercel
-- [ ] Deploy backend on fly(?)
 
 ---
 

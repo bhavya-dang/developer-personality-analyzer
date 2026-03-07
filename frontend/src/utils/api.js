@@ -11,7 +11,9 @@ import axios from "axios";
 // ── Axios instance ─────────────────────────────────────────────────────────────
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api",
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://developer-personality-analyzer.fly.dev/api",
   timeout: 60_000, // GitHub + optional OpenAI can be slow
   headers: {
     "Content-Type": "application/json",

@@ -13,7 +13,7 @@
  *
  * Optional env vars:
  *   OPENROUTER_MODEL     – model slug (default: "deepseek/deepseek-chat")
- *   OPENROUTER_SITE_URL  – your app's URL sent in HTTP-Referer (default: http://localhost:5173)
+ *   OPENROUTER_SITE_URL  – your app's URL sent in HTTP-Referer (default: https://what-is-my-developer-personality.vercel.app)
  *   OPENROUTER_SITE_NAME – your app's name sent in X-Title (default: DevPersonality)
  *
  * If no OPENROUTER_API_KEY is set the service gracefully degrades and returns
@@ -49,7 +49,8 @@ function getClient() {
     baseURL: OPENROUTER_BASE_URL,
     defaultHeaders: {
       "HTTP-Referer":
-        process.env.OPENROUTER_SITE_URL || "http://localhost:5173",
+        process.env.OPENROUTER_SITE_URL ||
+        "https://what-is-my-developer-personality.vercel.app",
       "X-Title": process.env.OPENROUTER_SITE_NAME || "DevPersonality",
     },
   });
