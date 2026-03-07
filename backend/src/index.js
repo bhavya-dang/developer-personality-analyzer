@@ -13,20 +13,23 @@ const allowedOrigins = [
   "https://what-is-my-developer-personality.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
+    if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
 
-      callback(new Error("Not allowed by CORS"));
-    },
-  }),
-);
-app.options("*", cors());
+    callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.options("/*path", cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
