@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Github, Sparkles, RefreshCw } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
 
 import SearchBar from "./components/SearchBar";
 import PersonalityCard from "./components/PersonalityCard";
@@ -473,6 +474,9 @@ export default function App() {
           </a>
         </div>
       </footer>
+
+      {/* ── Vercel Web Analytics ── */}
+      <Analytics />
     </div>
   );
 }
