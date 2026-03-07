@@ -51,8 +51,7 @@ export default function LoadingState({ query = "" }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.4 }}
           >
-            Crunching commits, decoding patterns, and summoning your developer
-            spirit animal…
+            Analysis make take some time...
           </motion.p>
         </div>
 
