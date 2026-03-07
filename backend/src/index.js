@@ -28,24 +28,23 @@ const corsOptions = {
   credentials: true,
 };
 
-app.options("*", cors(corsOptions));
 app.use(cors(corsOptions));
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
 
-  if (
-    !origin ||
-    allowedOrigins.includes(origin) ||
-    origin.endsWith(".vercel.app")
-  ) {
-    res.header("Access-Control-Allow-Origin", origin || "*");
-    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-  }
+//   if (
+//     !origin ||
+//     allowedOrigins.includes(origin) ||
+//     origin.endsWith(".vercel.app")
+//   ) {
+//     res.header("Access-Control-Allow-Origin", origin || "*");
+//     res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+//     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//     res.header("Access-Control-Allow-Credentials", "true");
+//   }
 
-  next();
-});
+//   next();
+// });
 
 app.use(express.json());
 

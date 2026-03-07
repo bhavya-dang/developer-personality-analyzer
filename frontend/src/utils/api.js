@@ -14,7 +14,7 @@ const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_BASE_URL ||
     "https://developer-personality-analyzer.fly.dev/api",
-  timeout: 60_000, // GitHub + Deepseek can be slow
+  timeout: 4360_000, // GitHub + Deepseek can be slow
   headers: {
     "Content-Type": "application/json",
   },
