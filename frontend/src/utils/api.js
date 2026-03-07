@@ -88,7 +88,7 @@ api.interceptors.response.use(
  * @param {number}  [opts.maxRepos]  1–10, how many repos to analyse (default 5)
  * @returns {Promise<object>}  Full personality report
  */
-export async function analyzeUser(username, { ai, maxRepos } = {}) {
+export async function analyzeUser(username, { ai, maxRepos, signal } = {}) {
   const params = {};
   if (ai !== undefined) params.ai = ai;
   if (maxRepos !== undefined) params.maxRepos = maxRepos;
@@ -97,8 +97,10 @@ export async function analyzeUser(username, { ai, maxRepos } = {}) {
     `/analyzer/user/${encodeURIComponent(username)}`,
     {
       params,
+      signal,
     },
   );
+
   return data;
 }
 
@@ -111,16 +113,16 @@ export async function analyzeUser(username, { ai, maxRepos } = {}) {
  * @param {boolean} [opts.ai] OpenAI override (same as analyzeUser)
  * @returns {Promise<object>}  Full personality report
  */
-export async function analyzeRepo(owner, repo, { ai } = {}) {
-  const params = {};
-  if (ai !== undefined) params.ai = ai;
+// export async function analyzeRepo(owner, repo, { ai } = {}) {
+//   const params = {};
+//   if (ai !== undefined) params.ai = ai;
 
-  const { data } = await api.get(
-    `/analyzer/repo/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
-    { params },
-  );
-  return data;
-}
+//   const { data } = await api.get(
+//     `/analyzer/repo/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+//     { params },
+//   );
+//   return data;
+// }
 
 /**
  * Parse a "owner/repo" string into { owner, repo }.
@@ -146,7 +148,7 @@ export function parseRepoInput(input) {
  * or a plain username (→ user analysis).
  *
  * @param {string} input
- * @returns {"user" | "repo" | "invalid"}
+ * @returns {"user" | "invalid"}
  */
 export function detectInputType(input) {
   const trimmed = (input || "").trim();

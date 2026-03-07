@@ -3,14 +3,9 @@
  * request — input parsing, loading state, result caching, and error handling.
  
  */
-
+import axios from "axios";
 import { useState, useCallback, useRef } from "react";
-import {
-  analyzeUser,
-  analyzeRepo,
-  detectInputType,
-  parseRepoInput,
-} from "../utils/api";
+import { analyzeUser, detectInputType } from "../utils/api";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -104,7 +99,7 @@ export function useAnalyzer({ ai, maxRepos = 5, cache = true } = {}) {
 
       if (inputType === "invalid") {
         patch({
-          error: `"${input}" doesn't look like a valid GitHub username or owner/repo path.`,
+          error: `"${input}" doesn't look like a valid GitHub username`,
           loading: false,
         });
         return null;
@@ -147,11 +142,16 @@ export function useAnalyzer({ ai, maxRepos = 5, cache = true } = {}) {
         let data;
 
         if (inputType === "user") {
-          data = await analyzeUser(input, { ai, maxRepos });
-        } else {
-          const { owner, repo } = parseRepoInput(input);
-          data = await analyzeRepo(owner, repo, { ai });
+          data = await analyzeUser(input, {
+            ai,
+            maxRepos,
+            signal: abortRef.current.signal,
+          });
         }
+        // } else {
+        //   const { owner, repo } = parseRepoInput(input);
+        //   data = await analyzeRepo(owner, repo, { ai });
+        // }
 
         // ── 6. Success ───────────────────────────────────────────────────
         const now = new Date();
@@ -169,7 +169,7 @@ export function useAnalyzer({ ai, maxRepos = 5, cache = true } = {}) {
         return data;
       } catch (err) {
         // Ignore aborted requests (user started a new search)
-        if (err.name === "CanceledError" || err.name === "AbortError") {
+        if (axios.isCancel?.(err) || err.code === "ERR_CANCELED") {
           return null;
         }
 
