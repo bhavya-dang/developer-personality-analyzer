@@ -44,7 +44,7 @@ api.interceptors.response.use(
       // Network error (backend not running, CORS, etc.)
       normalised.isNetwork = true;
       normalised.message =
-        "Cannot reach the server. Make sure the backend is running on port 3001.";
+        "Cannot reach the server. The API may be down or unreachable.";
     } else {
       normalised.status = error.response.status;
       const serverMessage = error.response.data?.error;
