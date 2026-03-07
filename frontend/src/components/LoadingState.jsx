@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { Github, Loader2 } from "lucide-react";
 
 const LOADING_STEPS = [
-  { icon: "🔍", text: "Fetching GitHub profile…" },
-  { icon: "📦", text: "Loading repositories…" },
-  { icon: "🔬", text: "Analyzing commit history…" },
-  { icon: "🕐", text: "Mapping activity patterns…" },
-  { icon: "🧬", text: "Detecting personality traits…" },
-  { icon: "🎨", text: "Building your report…" },
+  { icon: "🔍", text: "Fetching GitHub profile" },
+  { icon: "📦", text: "Loading repositories" },
+  { icon: "🔬", text: "Analyzing commit history" },
+  { icon: "🕐", text: "Mapping activity patterns" },
+  { icon: "🧬", text: "Detecting personality traits" },
+  { icon: "🎨", text: "Building your report" },
 ];
 
 export default function LoadingState({ query = "" }) {

@@ -25,8 +25,12 @@ async function ghGet(path, params = {}) {
       const status = err.response.status;
       if (status === 403 || status === 429) {
         const reset = err.response.headers["x-ratelimit-reset"];
-        const resetDate = reset ? new Date(reset * 1000).toISOString() : "unknown";
-        const e = new Error(`GitHub rate limit exceeded. Resets at ${resetDate}.`);
+        const resetDate = reset
+          ? new Date(reset * 1000).toISOString()
+          : "unknown";
+        const e = new Error(
+          `GitHub rate limit exceeded. Resets at ${resetDate}.`,
+        );
         e.status = 429;
         throw e;
       }
@@ -36,7 +40,7 @@ async function ghGet(path, params = {}) {
         throw e;
       }
       const e = new Error(
-        err.response.data?.message || `GitHub API error (${status})`
+        err.response.data?.message || `GitHub API error (${status})`,
       );
       e.status = status;
       throw e;
@@ -76,7 +80,10 @@ async function getUser(username) {
  * @param {string} username
  */
 async function getUserRepos(username) {
-  return ghGetAll(`/users/${username}/repos`, { sort: "pushed", direction: "desc" });
+  return ghGetAll(`/users/${username}/repos`, {
+    sort: "pushed",
+    direction: "desc",
+  });
 }
 
 /**
@@ -193,9 +200,7 @@ async function collectUserProfile(username, maxRepos = 5) {
   ]);
 
   // 2. Pick the most recently-pushed non-fork repos for deep analysis
-  const targetRepos = allRepos
-    .filter((r) => !r.fork)
-    .slice(0, maxRepos);
+  const targetRepos = allRepos.filter((r) => !r.fork).slice(0, maxRepos);
 
   // 3. For each target repo gather commits + languages in parallel
   const repoDetails = await Promise.all(
@@ -205,7 +210,7 @@ async function collectUserProfile(username, maxRepos = 5) {
         getLanguages(repo.owner.login, repo.name).catch(() => ({})),
       ]);
       return { repo, commits, languages };
-    })
+    }),
   );
 
   return { user, allRepos, repoDetails };
@@ -218,17 +223,17 @@ async function collectUserProfile(username, maxRepos = 5) {
  * @param {string} owner
  * @param {string} repo
  */
-async function collectRepoProfile(owner, repo) {
-  const [repoData, commits, languages, prs, activity] = await Promise.all([
-    getRepo(owner, repo),
-    getCommits(owner, repo, null, 5).catch(() => []),
-    getLanguages(owner, repo).catch(() => ({})),
-    getPullRequests(owner, repo, "all").catch(() => []),
-    getCommitActivity(owner, repo).catch(() => []),
-  ]);
+// async function collectRepoProfile(owner, repo) {
+//   const [repoData, commits, languages, prs, activity] = await Promise.all([
+//     getRepo(owner, repo),
+//     getCommits(owner, repo, null, 5).catch(() => []),
+//     getLanguages(owner, repo).catch(() => ({})),
+//     getPullRequests(owner, repo, "all").catch(() => []),
+//     getCommitActivity(owner, repo).catch(() => []),
+//   ]);
 
-  return { repo: repoData, commits, languages, pullRequests: prs, activity };
-}
+//   return { repo: repoData, commits, languages, pullRequests: prs, activity };
+// }
 
 module.exports = {
   getUser,
@@ -242,5 +247,5 @@ module.exports = {
   getCommitActivity,
   getFileTree,
   collectUserProfile,
-  collectRepoProfile,
+  // collectRepoProfile,
 };

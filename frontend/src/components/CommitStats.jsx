@@ -333,13 +333,13 @@ export default function CommitStats({ commitStats }) {
       sub: `peak day: ${timings?.peakDayOfWeek || "—"}`,
       color: "metric-pink",
     },
-    {
-      icon: <MessageSquare size={18} />,
-      label: "Avg Message",
-      value: `${messages?.averageSubjectLength || 0} chars`,
-      sub: `${messages?.conventionalCommitPercentage || 0}% conventional`,
-      color: "metric-teal",
-    },
+    // {
+    //   icon: <MessageSquare size={18} />,
+    //   label: "Avg Message",
+    //   value: `${messages?.averageSubjectLength || 0} chars`,
+    //   sub: `${messages?.conventionalCommitPercentage || 0}% conventional`,
+    //   color: "metric-teal",
+    // },
     ...(sizes?.sampledCount > 0
       ? [
           {
@@ -409,7 +409,7 @@ export default function CommitStats({ commitStats }) {
             <div className="cs-metric-body">
               <span className="cs-metric-value">{card.value}</span>
               <span className="cs-metric-label">{card.label}</span>
-              {card.sub && <span className="cs-metric-sub">{card.sub}</span>}
+              {/* {card.sub && <span className="cs-metric-sub">{card.sub}</span>} */}
             </div>
           </motion.div>
         ))}

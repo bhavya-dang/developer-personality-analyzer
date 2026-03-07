@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, Bot, FileText, RefreshCw } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function AISummary({ summary, onRefresh, loading = false }) {
   // ── Loading skeleton ────────────────────────────────────────────────────────
@@ -30,20 +32,20 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
     return null;
   }
 
-  const { summary: text, source, model, tokensUsed, error } = summary;
+  const { summary: text, source, error } = summary;
   const isAI = source === "openrouter";
 
   // ── Split text into paragraphs ───────────────────────────────────────────────
   // The text may come with \n\n paragraph breaks or just single \n breaks.
-  const paragraphs = text
-    .split(/\n{2,}/) // split on blank lines first
-    .flatMap((chunk) =>
-      chunk.includes("\n")
-        ? chunk.split("\n").filter(Boolean) // then split on single newlines
-        : [chunk],
-    )
-    .map((p) => p.trim())
-    .filter(Boolean);
+  // const paragraphs = text
+  //   .split(/\n{2,}/) // split on blank lines first
+  //   .flatMap((chunk) =>
+  //     chunk.includes("\n")
+  //       ? chunk.split("\n").filter(Boolean) // then split on single newlines
+  //       : [chunk],
+  //   )
+  //   .map((p) => p.trim())
+  //   .filter(Boolean);
 
   // ── Animation variants ───────────────────────────────────────────────────────
   const cardVariants = {
@@ -55,14 +57,14 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
     },
   };
 
-  const paraVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: (i) => ({
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease: "easeOut", delay: 0.1 + i * 0.08 },
-    }),
-  };
+  // const paraVariants = {
+  //   hidden: { opacity: 0, y: 12 },
+  //   visible: (i) => ({
+  //     opacity: 1,
+  //     y: 0,
+  //     transition: { duration: 0.4, ease: "easeOut", delay: 0.1 + i * 0.08 },
+  //   }),
+  // };
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -99,13 +101,13 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
         </div>
 
         {/* Optional: model + token usage info for AI results */}
-        {isAI && (model || tokensUsed) && (
+        {/* {isAI && (model || tokensUsed) && (
           <p className="ai-model-info">
             {model && <span>Model: {model}</span>}
             {model && tokensUsed && <span className="ai-meta-dot">·</span>}
             {tokensUsed && <span>{tokensUsed} tokens used</span>}
           </p>
-        )}
+        )} */}
 
         {/* Show a soft notice if the AI call failed and we fell back */}
         {error && !isAI && (
@@ -118,7 +120,7 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
 
       {/* ── Prose body ── */}
       <div className="ai-summary-body">
-        {paragraphs.map((para, i) => {
+        {/* {paragraphs.map((para, i) => {
           // Last paragraph gets a special "verdict" styling
           const isVerdict =
             i === paragraphs.length - 1 && paragraphs.length > 1;
@@ -140,7 +142,10 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
               {para}
             </motion.p>
           );
-        })}
+        })} */}
+        <div className="ai-summary-body">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+        </div>
       </div>
 
       {/* ── Footer actions ── */}
@@ -158,11 +163,11 @@ export default function AISummary({ summary, onRefresh, loading = false }) {
         )}
 
         {/* Attribution */}
-        <span className="ai-attribution">
+        {/* <span className="ai-attribution">
           {isAI
             ? `Via OpenRouter${summary.model ? ` · ${summary.model}` : ""} · For entertainment purposes`
             : "Deterministic report · Add OPENROUTER_API_KEY for AI summaries"}
-        </span>
+        </span> */}
       </div>
     </motion.div>
   );

@@ -108,7 +108,7 @@ export default function CommitHeatmap({
           {title}
         </h3>
         <p className="heatmap-empty">
-          No activity data available for this repository.
+          No activity data available for this user.
         </p>
       </div>
     );

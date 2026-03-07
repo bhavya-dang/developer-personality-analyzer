@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Toaster, toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Github, Sparkles } from "lucide-react";
+import { Github, Sparkles, RefreshCw } from "lucide-react";
 
 import SearchBar from "./components/SearchBar";
 import PersonalityCard from "./components/PersonalityCard";
@@ -165,8 +165,8 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.28, duration: 0.45 }}
                 >
-                  Drop your GitHub username or repo. We'll analyze your commits
-                  and generate a personality profile.
+                  Drop your GitHub username. We'll analyze your commits and
+                  generate a personality profile.
                 </motion.p>
               </div>
 
@@ -305,7 +305,7 @@ export default function App() {
                   )}
                 </div>
 
-                {subject?.type === "user" && subject?.profileUrl && (
+                {/* {subject?.type === "user" && subject?.profileUrl && (
                   <a
                     className="results-github-link"
                     href={subject.profileUrl}
@@ -316,8 +316,31 @@ export default function App() {
                     <Github size={16} />
                     View on GitHub
                   </a>
-                )}
-                {subject?.type === "repo" && subject?.url && (
+                )} */}
+                <div className="results-header-actions">
+                  <button
+                    className="results-refresh-btn"
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    title="Refresh analysis"
+                  >
+                    <RefreshCw size={16} className={isLoading ? "spin" : ""} />
+                  </button>
+
+                  {subject?.type === "user" && subject?.profileUrl && (
+                    <a
+                      className="results-github-link"
+                      href={subject.profileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${subjectLabel} on GitHub`}
+                    >
+                      <Github size={16} />
+                      View on GitHub
+                    </a>
+                  )}
+                </div>
+                {/* {subject?.type === "repo" && subject?.url && (
                   <a
                     className="results-github-link"
                     href={subject.url}
@@ -328,7 +351,7 @@ export default function App() {
                     <Github size={16} />
                     View repo
                   </a>
-                )}
+                )} */}
               </div>
 
               {/* ── Main results grid ── */}
@@ -371,7 +394,7 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Row 5: Activity heatmap (repo only — user endpoint doesn't return weekly activity) */}
+                  {/* Row 5: Activity heatmap */}
                   {weeklyActivity && weeklyActivity.length > 0 && (
                     <div className="results-col-full">
                       <CommitHeatmap

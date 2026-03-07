@@ -16,7 +16,7 @@ export default function SearchBar({
   initialValue = "",
 }) {
   const [value, setValue] = useState(initialValue);
-  const [inputType, setType] = useState("invalid"); // "user" | "repo" | "invalid"
+  const [inputType, setType] = useState("invalid"); // "user"  | "invalid"
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
 
@@ -35,7 +35,7 @@ export default function SearchBar({
   function handleSubmit(e) {
     e?.preventDefault();
     const trimmed = value.trim();
-    if (!trimmed || loading || inputType === "invalid") return;
+    if (!trimmed || loading || inputType !== "user") return;
     onSubmit(trimmed);
   }
 
@@ -51,13 +51,14 @@ export default function SearchBar({
 
   // ── Derived UI values ────────────────────────────────────────────────────────
 
-  const isValid = inputType !== "invalid";
+  const isValid = inputType === "user";
   const trimmed = value.trim();
   const hasValue = trimmed.length > 0;
-  const canSubmit = isValid && !loading;
+  const canSubmit = isValid && hasValue && !loading;
 
   const badge = (() => {
     if (!hasValue) return null;
+
     if (inputType === "user") {
       return {
         icon: <User size={12} />,
@@ -65,6 +66,7 @@ export default function SearchBar({
         className: "badge-user",
       };
     }
+
     if (inputType === "repo") {
       return {
         icon: <GitBranch size={12} />,
@@ -72,6 +74,7 @@ export default function SearchBar({
         className: "badge-repo",
       };
     }
+
     return {
       icon: null,
       label: "Invalid",
@@ -79,7 +82,7 @@ export default function SearchBar({
     };
   })();
 
-  const placeholder = "GitHub username or owner/repo…";
+  const placeholder = "GitHub username..";
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -166,8 +169,7 @@ export default function SearchBar({
         id="search-hint"
         className={`search-hint ${!isValid && hasValue ? "visible" : ""}`}
       >
-        Enter a GitHub username (e.g. <code>torvalds</code>) or owner/repo (e.g.{" "}
-        <code>facebook/react</code>).
+        Enter a GitHub username (e.g. <code>torvalds</code>)
       </p>
 
       {/* ── Examples ── */}
@@ -177,8 +179,6 @@ export default function SearchBar({
           {[
             { label: "torvalds", type: "user" },
             { label: "gaearon", type: "user" },
-            { label: "facebook/react", type: "repo" },
-            { label: "vercel/next.js", type: "repo" },
           ].map(({ label }) => (
             <button
               key={label}

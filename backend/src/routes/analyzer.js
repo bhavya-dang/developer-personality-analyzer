@@ -6,9 +6,6 @@
  * GET  /api/analyzer/user/:username
  *      Full personality profile for a GitHub user (aggregated across their repos)
  *
- * GET  /api/analyzer/repo/:owner/:repo
- *      Full personality profile for a specific repository
- *
  * GET  /api/analyzer/health
  *      Service health + configuration status
  *
@@ -132,7 +129,10 @@ router.get(
     const { user, repoDetails } = rawData;
 
     // ── 2. Aggregate commits & languages across all fetched repos ─────────
-    const allCommits = repoDetails.flatMap((rd) => rd.commits);
+    const allCommits = repoDetails
+      .flatMap((rd) => rd.commits)
+      .filter((c) => c.author?.login === username);
+    const weeklyActivity = buildWeeklyActivity(allCommits);
 
     const mergedLanguageBytes = mergeLanguageMaps(
       repoDetails.map((rd) => rd.languages),
@@ -215,6 +215,7 @@ router.get(
         sizes: commitAnalysis.sizes,
       },
       summary: summaryResult,
+      weeklyActivity,
       meta: {
         analyzedAt: new Date().toISOString(),
         commitsAnalyzed: commitAnalysis.totalCommits,
@@ -228,154 +229,204 @@ router.get(
 );
 
 // ── GET /api/analyzer/repo/:owner/:repo ───────────────────────────────────────
+// Removing support
+// router.get(
+//   "/repo/:owner/:repo",
+//   asyncHandler(async (req, res) => {
+//     const { owner, repo } = req.params;
+//     const aiMode = parseAiParam(req.query.ai);
 
-router.get(
-  "/repo/:owner/:repo",
-  asyncHandler(async (req, res) => {
-    const { owner, repo } = req.params;
-    const aiMode = parseAiParam(req.query.ai);
+//     // Basic input validation
+//     const validSegment = /^[a-zA-Z0-9_.\-]{1,100}$/;
+//     if (!validSegment.test(owner) || !validSegment.test(repo)) {
+//       return res.status(400).json({ error: "Invalid owner or repo name." });
+//     }
 
-    // Basic input validation
-    const validSegment = /^[a-zA-Z0-9_.\-]{1,100}$/;
-    if (!validSegment.test(owner) || !validSegment.test(repo)) {
-      return res.status(400).json({ error: "Invalid owner or repo name." });
-    }
+//     // ── 1. Fetch raw GitHub data ──────────────────────────────────────────
+//     let rawData;
+//     try {
+//       rawData = await githubService.collectRepoProfile(owner, repo);
+//     } catch (err) {
+//       return handleGithubError(err, res);
+//     }
 
-    // ── 1. Fetch raw GitHub data ──────────────────────────────────────────
-    let rawData;
-    try {
-      rawData = await githubService.collectRepoProfile(owner, repo);
-    } catch (err) {
-      return handleGithubError(err, res);
-    }
+//     const {
+//       repo: repoData,
+//       commits,
+//       languages,
+//       pullRequests,
+//       activity,
+//     } = rawData;
 
-    const {
-      repo: repoData,
-      commits,
-      languages,
-      pullRequests,
-      activity,
-    } = rawData;
+//     // ── 2. Analyze ────────────────────────────────────────────────────────
+//     const commitAnalysis = analyzeCommits(commits);
+//     const langInfo = analyzeLanguages(languages);
 
-    // ── 2. Analyze ────────────────────────────────────────────────────────
-    const commitAnalysis = analyzeCommits(commits);
-    const langInfo = analyzeLanguages(languages);
+//     const metrics = {
+//       timings: commitAnalysis.timings,
+//       messages: commitAnalysis.messages,
+//       cadence: commitAnalysis.cadence,
+//       sizes: commitAnalysis.sizes,
+//       languages,
+//       pullRequests,
+//     };
 
-    const metrics = {
-      timings: commitAnalysis.timings,
-      messages: commitAnalysis.messages,
-      cadence: commitAnalysis.cadence,
-      sizes: commitAnalysis.sizes,
-      languages,
-      pullRequests,
-    };
+//     const profile = buildPersonalityProfile(metrics);
 
-    const profile = buildPersonalityProfile(metrics);
+//     // Derive a display username from the most frequent committer
+//     const authorCounts = {};
+//     for (const c of commits) {
+//       const login = c.author?.login || c.commit?.author?.name || "unknown";
+//       authorCounts[login] = (authorCounts[login] || 0) + 1;
+//     }
+//     const topAuthor =
+//       Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || owner;
 
-    // Derive a display username from the most frequent committer
-    const authorCounts = {};
-    for (const c of commits) {
-      const login = c.author?.login || c.commit?.author?.name || "unknown";
-      authorCounts[login] = (authorCounts[login] || 0) + 1;
-    }
-    const topAuthor =
-      Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || owner;
+//     // ── 3. AI summary ─────────────────────────────────────────────────────
+//     const summaryResult = await aiService.generatePersonalitySummary(
+//       `${owner}/${repo}`,
+//       profile,
+//       metrics,
+//       langInfo,
+//       { name: repoData.full_name, bio: repoData.description },
+//     );
 
-    // ── 3. AI summary ─────────────────────────────────────────────────────
-    const summaryResult = await aiService.generatePersonalitySummary(
-      `${owner}/${repo}`,
-      profile,
-      metrics,
-      langInfo,
-      { name: repoData.full_name, bio: repoData.description },
-    );
+//     // ── 4. Weekly activity heatmap (last 52 weeks) ────────────────────────
+//     const weeklyActivity = (activity || []).map((week) => ({
+//       weekStart: new Date(week.week * 1000).toISOString().slice(0, 10),
+//       total: week.total,
+//       days: week.days, // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
+//     }));
 
-    // ── 4. Weekly activity heatmap (last 52 weeks) ────────────────────────
-    const weeklyActivity = (activity || []).map((week) => ({
-      weekStart: new Date(week.week * 1000).toISOString().slice(0, 10),
-      total: week.total,
-      days: week.days, // [Sun, Mon, Tue, Wed, Thu, Fri, Sat]
-    }));
+//     // PR metrics
+//     const prMetrics = (() => {
+//       if (!pullRequests || pullRequests.length === 0) {
+//         return { total: 0, open: 0, closed: 0, merged: 0, avgTitleLength: 0 };
+//       }
+//       const open = pullRequests.filter((p) => p.state === "open").length;
+//       const merged = pullRequests.filter((p) => p.merged_at != null).length;
+//       const closed = pullRequests.filter(
+//         (p) => p.state === "closed" && !p.merged_at,
+//       ).length;
+//       const avgTitleLength = Math.round(
+//         pullRequests.reduce((s, p) => s + (p.title?.length || 0), 0) /
+//           pullRequests.length,
+//       );
+//       return {
+//         total: pullRequests.length,
+//         open,
+//         closed,
+//         merged,
+//         avgTitleLength,
+//       };
+//     })();
 
-    // PR metrics
-    const prMetrics = (() => {
-      if (!pullRequests || pullRequests.length === 0) {
-        return { total: 0, open: 0, closed: 0, merged: 0, avgTitleLength: 0 };
-      }
-      const open = pullRequests.filter((p) => p.state === "open").length;
-      const merged = pullRequests.filter((p) => p.merged_at != null).length;
-      const closed = pullRequests.filter(
-        (p) => p.state === "closed" && !p.merged_at,
-      ).length;
-      const avgTitleLength = Math.round(
-        pullRequests.reduce((s, p) => s + (p.title?.length || 0), 0) /
-          pullRequests.length,
-      );
-      return {
-        total: pullRequests.length,
-        open,
-        closed,
-        merged,
-        avgTitleLength,
-      };
-    })();
+//     // ── 5. Assemble response ──────────────────────────────────────────────
+//     const response = {
+//       subject: {
+//         type: "repo",
+//         owner,
+//         repo: repoData.name,
+//         fullName: repoData.full_name,
+//         description: repoData.description || null,
+//         url: repoData.html_url,
+//         stars: repoData.stargazers_count,
+//         forks: repoData.forks_count,
+//         openIssues: repoData.open_issues_count,
+//         defaultBranch: repoData.default_branch,
+//         createdAt: repoData.created_at,
+//         pushedAt: repoData.pushed_at,
+//         topAuthor,
+//       },
+//       profile,
+//       languages: langInfo,
+//       commitStats: {
+//         totalCommits: commitAnalysis.totalCommits,
+//         cadence: commitAnalysis.cadence,
+//         timings: {
+//           hourHistogram: commitAnalysis.timings.hourHistogram,
+//           dayOfWeekHistogram: commitAnalysis.timings.dayOfWeekHistogram,
+//           timeBuckets: commitAnalysis.timings.timeBuckets,
+//           timeBucketPercentages: commitAnalysis.timings.timeBucketPercentages,
+//           peakHour: commitAnalysis.timings.peakHour,
+//           peakDayOfWeek: commitAnalysis.timings.peakDayOfWeek,
+//           weekendPercentage: commitAnalysis.timings.weekendPercentage,
+//         },
+//         messages: {
+//           commitTypes: commitAnalysis.messages.commitTypes,
+//           conventionalCommitPercentage:
+//             commitAnalysis.messages.conventionalCommitPercentage,
+//           averageSubjectLength: commitAnalysis.messages.averageSubjectLength,
+//           medianSubjectLength: commitAnalysis.messages.medianSubjectLength,
+//           hasBodyPercentage: commitAnalysis.messages.hasBodyPercentage,
+//           emojiPercentage: commitAnalysis.messages.emojiPercentage,
+//           wipPercentage: commitAnalysis.messages.wipPercentage,
+//           dominantType: commitAnalysis.messages.dominantType,
+//         },
+//         sizes: commitAnalysis.sizes,
+//       },
+//       pullRequests: prMetrics,
+//       weeklyActivity,
+//       summary: summaryResult,
+//       meta: {
+//         analyzedAt: new Date().toISOString(),
+//         commitsAnalyzed: commitAnalysis.totalCommits,
+//         aiEnabled: summaryResult.source === "openrouter",
+//       },
+//     };
 
-    // ── 5. Assemble response ──────────────────────────────────────────────
-    const response = {
-      subject: {
-        type: "repo",
-        owner,
-        repo: repoData.name,
-        fullName: repoData.full_name,
-        description: repoData.description || null,
-        url: repoData.html_url,
-        stars: repoData.stargazers_count,
-        forks: repoData.forks_count,
-        openIssues: repoData.open_issues_count,
-        defaultBranch: repoData.default_branch,
-        createdAt: repoData.created_at,
-        pushedAt: repoData.pushed_at,
-        topAuthor,
-      },
-      profile,
-      languages: langInfo,
-      commitStats: {
-        totalCommits: commitAnalysis.totalCommits,
-        cadence: commitAnalysis.cadence,
-        timings: {
-          hourHistogram: commitAnalysis.timings.hourHistogram,
-          dayOfWeekHistogram: commitAnalysis.timings.dayOfWeekHistogram,
-          timeBuckets: commitAnalysis.timings.timeBuckets,
-          timeBucketPercentages: commitAnalysis.timings.timeBucketPercentages,
-          peakHour: commitAnalysis.timings.peakHour,
-          peakDayOfWeek: commitAnalysis.timings.peakDayOfWeek,
-          weekendPercentage: commitAnalysis.timings.weekendPercentage,
-        },
-        messages: {
-          commitTypes: commitAnalysis.messages.commitTypes,
-          conventionalCommitPercentage:
-            commitAnalysis.messages.conventionalCommitPercentage,
-          averageSubjectLength: commitAnalysis.messages.averageSubjectLength,
-          medianSubjectLength: commitAnalysis.messages.medianSubjectLength,
-          hasBodyPercentage: commitAnalysis.messages.hasBodyPercentage,
-          emojiPercentage: commitAnalysis.messages.emojiPercentage,
-          wipPercentage: commitAnalysis.messages.wipPercentage,
-          dominantType: commitAnalysis.messages.dominantType,
-        },
-        sizes: commitAnalysis.sizes,
-      },
-      pullRequests: prMetrics,
-      weeklyActivity,
-      summary: summaryResult,
-      meta: {
-        analyzedAt: new Date().toISOString(),
-        commitsAnalyzed: commitAnalysis.totalCommits,
-        aiEnabled: summaryResult.source === "openrouter",
-      },
-    };
+//     res.json(response);
+//   }),
+// );
 
-    res.json(response);
-  }),
-);
+/**
+ * Build a GitHub-style 52 week heatmap from commits
+ * Output format matches repo weeklyActivity
+ */
+function buildWeeklyActivity(commits) {
+  const now = new Date();
+  const weeks = [];
+
+  const start = new Date();
+  start.setDate(now.getDate() - 7 * 52);
+  start.setHours(0, 0, 0, 0);
+
+  // normalize to Sunday
+  start.setDate(start.getDate() - start.getDay());
+
+  for (let i = 0; i < 52; i++) {
+    const weekStart = new Date(start);
+    weekStart.setDate(start.getDate() + i * 7);
+
+    weeks.push({
+      weekStart: weekStart.toISOString().slice(0, 10),
+      total: 0,
+      days: [0, 0, 0, 0, 0, 0, 0],
+    });
+  }
+
+  for (const commit of commits) {
+    const dateStr =
+      commit.commit?.author?.date || commit.commit?.committer?.date;
+
+    if (!dateStr) continue;
+
+    const d = new Date(dateStr);
+
+    if (d < start) continue;
+
+    const diffDays = Math.floor((d - start) / 86400000);
+    const weekIndex = Math.floor(diffDays / 7);
+
+    if (weekIndex < 0 || weekIndex >= weeks.length) continue;
+
+    const dayIndex = d.getDay();
+
+    weeks[weekIndex].days[dayIndex]++;
+    weeks[weekIndex].total++;
+  }
+
+  return weeks;
+}
 
 module.exports = router;
